@@ -1,6 +1,6 @@
-import ICacheProvider from '@shared/container/providers/CacheProvider/models/ICacheProvider';
 import { injectable, inject } from 'tsyringe';
 
+import ICacheProvider from '@shared/container/providers/CacheProvider/models/ICacheProvider';
 import Cidade from '../infra/typeorm/schemas/Cidade';
 import ICidadesRepository from '../repositories/ICidadesRepository';
 
@@ -27,7 +27,33 @@ class FindCidadesService {
   }: IRequest): Promise<Cidade[] | Cidade | undefined> {
     const cachedCidades = await this.cacheProvider.recover<Cidade[]>('cidades');
 
-    if (cachedCidades && !id && !orderBy) {
+    if (cachedCidades && !id) {
+      if (orderBy && sort === 'ASC') {
+        return cachedCidades.sort(
+          (a: Record<string, any>, b: Record<string, any>) => {
+            if (a[orderBy] > b[orderBy]) {
+              return 1;
+            }
+            if (b[orderBy] > a[orderBy]) {
+              return -1;
+            }
+            return 0;
+          },
+        );
+      }
+      if (orderBy && sort === 'DESC') {
+        return cachedCidades.sort(
+          (a: Record<string, any>, b: Record<string, any>) => {
+            if (a[orderBy] < b[orderBy]) {
+              return 1;
+            }
+            if (b[orderBy] < a[orderBy]) {
+              return -1;
+            }
+            return 0;
+          },
+        );
+      }
       return cachedCidades;
     }
 

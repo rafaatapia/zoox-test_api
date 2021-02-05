@@ -27,7 +27,33 @@ class FindEstadosService {
   }: IRequest): Promise<Estado[] | Estado | undefined> {
     const cachedEstados = await this.cacheProvider.recover<Estado[]>('estados');
 
-    if (cachedEstados && !id && !orderBy) {
+    if (cachedEstados && !id) {
+      if (orderBy && sort === 'ASC') {
+        return cachedEstados.sort(
+          (a: Record<string, any>, b: Record<string, any>) => {
+            if (a[orderBy] > b[orderBy]) {
+              return 1;
+            }
+            if (b[orderBy] > a[orderBy]) {
+              return -1;
+            }
+            return 0;
+          },
+        );
+      }
+      if (orderBy && sort === 'DESC') {
+        return cachedEstados.sort(
+          (a: Record<string, any>, b: Record<string, any>) => {
+            if (a[orderBy] < b[orderBy]) {
+              return 1;
+            }
+            if (b[orderBy] < a[orderBy]) {
+              return -1;
+            }
+            return 0;
+          },
+        );
+      }
       return cachedEstados;
     }
 
