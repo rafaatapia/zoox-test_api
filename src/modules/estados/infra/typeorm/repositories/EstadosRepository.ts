@@ -34,30 +34,20 @@ class EstadosRepository implements IEstadosRepository {
   }
 
   public async findAll({
-    orderBy,
+    orderBy = 'nome',
     sort = 'ASC',
   }: IFindAllEstadosDTO): Promise<Estado[] | undefined> {
-    if (orderBy) {
-      return this.ormRepository.find({ order: { [orderBy]: sort } });
-    }
-
-    return this.ormRepository.find({ order: { nome: 'ASC' } });
+    return this.ormRepository.find({ order: { [orderBy]: sort } });
   }
 
   public async findByNome({
-    orderBy,
+    orderBy = 'nome',
     sort = 'ASC',
     nome,
   }: IFindByNomeEstadoDTO): Promise<Estado[] | undefined> {
-    if (orderBy) {
-      return this.ormRepository.find({
-        where: { nome: Like(nome) },
-        order: { [orderBy]: sort },
-      });
-    }
     return this.ormRepository.find({
       where: { nome: Like(nome) },
-      order: { nome: 'ASC' },
+      order: { [orderBy]: sort },
     });
   }
 

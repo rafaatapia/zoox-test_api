@@ -38,7 +38,7 @@ class CidadesRepository implements ICidadesRepository {
   }
 
   public async findAll({
-    orderBy,
+    orderBy = 'nome',
     sort = 'ASC',
   }: IFindAllCidadesDTO): Promise<Cidade[] | undefined> {
     const estados = await this.estadoRepository.find();
@@ -48,17 +48,9 @@ class CidadesRepository implements ICidadesRepository {
       return map;
     }, {});
 
-    let cidadesList;
-
-    if (orderBy) {
-      cidadesList = await this.ormRepository.find({
-        order: { [orderBy]: sort },
-      });
-    } else {
-      cidadesList = await this.ormRepository.find({
-        order: { nome: 'ASC' },
-      });
-    }
+    const cidadesList = await this.ormRepository.find({
+      order: { [orderBy]: sort },
+    });
 
     return cidadesList.map(cidade => {
       return {
@@ -70,18 +62,26 @@ class CidadesRepository implements ICidadesRepository {
 
   public async findByNome({
     nome,
-    orderBy,
+    orderBy = 'nome',
     sort = 'ASC',
   }: IFindByNomeCidadeDTO): Promise<Cidade[] | undefined> {
-    if (orderBy) {
-      return this.ormRepository.find({
-        where: { nome: Like(nome) },
-        order: { [orderBy]: sort },
-      });
-    }
-    return this.ormRepository.find({
+    const estados = await this.estadoRepository.find();
+
+    const hashEstados = estados.reduce((map, obj) => {
+      map[obj.id.toString()] = obj;
+      return map;
+    }, {});
+
+    const cidadesList = await this.ormRepository.find({
       where: { nome: Like(nome) },
-      order: { nome: 'ASC' },
+      order: { [orderBy]: sort },
+    });
+
+    return cidadesList.map(cidade => {
+      return {
+        ...cidade,
+        estado: hashEstados[cidade.estadoId],
+      };
     });
   }
 

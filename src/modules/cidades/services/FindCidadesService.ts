@@ -8,6 +8,7 @@ interface IRequest {
   id?: string;
   orderBy?: string;
   sort?: string;
+  nome?: string;
 }
 
 @injectable()
@@ -24,12 +25,14 @@ class FindCidadesService {
     id,
     orderBy,
     sort,
+    nome,
   }: IRequest): Promise<Cidade[] | Cidade | undefined> {
     const cachedCidades = await this.cacheProvider.recover<Cidade[]>('cidades');
 
     if (cachedCidades && !id) {
+      let cachedFilteredCidades = cachedCidades;
       if (orderBy && sort === 'ASC') {
-        return cachedCidades.sort(
+        cachedFilteredCidades = cachedCidades.sort(
           (a: Record<string, any>, b: Record<string, any>) => {
             if (a[orderBy] > b[orderBy]) {
               return 1;
@@ -40,9 +43,8 @@ class FindCidadesService {
             return 0;
           },
         );
-      }
-      if (orderBy && sort === 'DESC') {
-        return cachedCidades.sort(
+      } else if (orderBy && sort === 'DESC') {
+        cachedFilteredCidades = cachedCidades.sort(
           (a: Record<string, any>, b: Record<string, any>) => {
             if (a[orderBy] < b[orderBy]) {
               return 1;
@@ -54,11 +56,22 @@ class FindCidadesService {
           },
         );
       }
-      return cachedCidades;
+
+      if (nome) {
+        cachedFilteredCidades = cachedFilteredCidades.filter(cidade =>
+          cidade.nome.toLowerCase().includes(nome.toLowerCase()),
+        );
+      }
+
+      return cachedFilteredCidades;
     }
 
     if (id) {
       return this.cidadesRepository.findById(id);
+    }
+
+    if (nome) {
+      return this.cidadesRepository.findByNome({ nome, sort, orderBy });
     }
 
     const cidades = await this.cidadesRepository.findAll({ orderBy, sort });

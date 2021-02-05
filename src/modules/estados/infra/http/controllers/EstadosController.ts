@@ -24,10 +24,11 @@ export default class EstadosController {
     const { id } = request.params;
     const sort = request.query.sort as string;
     const orderBy = request.query.orderBy as string;
+    const nome = request.query.nome as string;
 
     const findEstados = container.resolve(FindEstadosService);
 
-    const estados = await findEstados.execute({ id, sort, orderBy });
+    const estados = await findEstados.execute({ id, sort, orderBy, nome });
 
     return response.json(estados);
   }

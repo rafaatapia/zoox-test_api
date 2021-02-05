@@ -1,15 +1,19 @@
 import { Router } from 'express';
 import { celebrate, Segments, Joi } from 'celebrate';
 
+import secureApiKey from '@shared/infra/http/middlewares/secureApiKey';
 import CidadesController from '../controllers/CidadesController';
 
 const cidadesRouter = Router();
 const cidadesController = new CidadesController();
 
+cidadesRouter.use(secureApiKey);
+
 cidadesRouter.get(
   '/',
   celebrate({
     [Segments.QUERY]: {
+      nome: Joi.string(),
       orderBy: Joi.string().valid('id', 'nome', 'createdAt', 'updatedAt'),
       sort: Joi.string().valid('ASC', 'DESC'),
     },

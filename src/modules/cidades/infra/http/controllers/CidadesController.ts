@@ -25,10 +25,11 @@ export default class CidadesController {
     const { id } = request.params;
     const sort = request.query.sort as string;
     const orderBy = request.query.orderBy as string;
+    const nome = request.query.nome as string;
 
     const findCidades = container.resolve(FindCidadesService);
 
-    const cidades = await findCidades.execute({ id, sort, orderBy });
+    const cidades = await findCidades.execute({ id, sort, orderBy, nome });
 
     return response.json(classToClass(cidades));
   }

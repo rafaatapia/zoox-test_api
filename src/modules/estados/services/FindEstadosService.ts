@@ -8,6 +8,7 @@ interface IRequest {
   id?: string;
   orderBy?: string;
   sort?: string;
+  nome?: string;
 }
 
 @injectable()
@@ -24,12 +25,14 @@ class FindEstadosService {
     id,
     orderBy,
     sort,
+    nome,
   }: IRequest): Promise<Estado[] | Estado | undefined> {
     const cachedEstados = await this.cacheProvider.recover<Estado[]>('estados');
 
     if (cachedEstados && !id) {
+      let cachedFilteredEstados = cachedEstados;
       if (orderBy && sort === 'ASC') {
-        return cachedEstados.sort(
+        cachedFilteredEstados = cachedEstados.sort(
           (a: Record<string, any>, b: Record<string, any>) => {
             if (a[orderBy] > b[orderBy]) {
               return 1;
@@ -40,9 +43,8 @@ class FindEstadosService {
             return 0;
           },
         );
-      }
-      if (orderBy && sort === 'DESC') {
-        return cachedEstados.sort(
+      } else if (orderBy && sort === 'DESC') {
+        cachedFilteredEstados = cachedEstados.sort(
           (a: Record<string, any>, b: Record<string, any>) => {
             if (a[orderBy] < b[orderBy]) {
               return 1;
@@ -54,11 +56,22 @@ class FindEstadosService {
           },
         );
       }
-      return cachedEstados;
+
+      if (nome) {
+        cachedFilteredEstados = cachedFilteredEstados.filter(estado =>
+          estado.nome.toLowerCase().includes(nome.toLowerCase()),
+        );
+      }
+
+      return cachedFilteredEstados;
     }
 
     if (id) {
       return this.estadosRepository.findById(id);
+    }
+
+    if (nome) {
+      return this.estadosRepository.findByNome({ nome, orderBy, sort });
     }
 
     const estados = await this.estadosRepository.findAll({ orderBy, sort });

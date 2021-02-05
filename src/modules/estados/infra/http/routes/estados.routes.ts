@@ -1,15 +1,19 @@
 import { Router } from 'express';
 import { celebrate, Segments, Joi } from 'celebrate';
 
+import secureApiKey from '@shared/infra/http/middlewares/secureApiKey';
 import EstadosController from '../controllers/EstadosController';
 
 const estadosRouter = Router();
 const estadosController = new EstadosController();
 
+estadosRouter.use(secureApiKey);
+
 estadosRouter.get(
   '/',
   celebrate({
     [Segments.QUERY]: {
+      nome: Joi.string(),
       orderBy: Joi.string().valid(
         'id',
         'nome',
